@@ -39,9 +39,26 @@ const sn = new Game();
 
 const pauseButton = document.getElementsByClassName("pause-button")[0];
 
-// start pause
+//saves setinterval timer
 let myvar;
-startButton.addEventListener("click", () => myvar = setInterval(() => { sn.move(result.dx, result.dy) }, 1000));
+
+function buttonActionWrapper(){
+    sn.reset();
+    startButtonAction();
+}
+
+function startButtonAction(){
+    myvar = setInterval( () => {
+        if(sn.play){
+            sn.move(result.dx, result.dy) 
+        }else{
+            result.dx = 1;
+            result.dy = 0;
+            clearInterval(myvar);
+        }   
+    }, 1000);
+}
+startButton.addEventListener("click",buttonActionWrapper,false );
 
 pauseButton.addEventListener("click", () => clearInterval(myvar));
 
