@@ -1,18 +1,26 @@
 export class Game {
     constructor() {
-        this.reset();
+        this.play = true;
         this.restart();
     }
-
-    reset() {
-        this.play = true;
+    /**
+     * sets gameplay to true
+     * @param {boolean} value
+     */
+    set setPlay(value) {
+        this.play = value;
     }
 
+    /** 
+     * getter that returns boolean if game still continues
+     */
     get playing() {
         return this.play;
     }
 
-
+    /**
+     * resets game state and board
+     */
     restart() {
         this.score = 0;
         this.lastDirection = { dx: 1, dy: 0 };
@@ -32,7 +40,15 @@ export class Game {
     }
 
 
-
+    /**
+     * takes keaboard event and generates new direction vector
+     * return value is object where dx is direction along x axis
+     * and dy is direction along y axis
+     * 1 means moving  along axis
+     * 0 mean no move
+     * -1 means moving oposite direction 
+     * @param {*} event keaboard event 
+     */
     getDirection(event) {
         switch (event.keyCode) {
             case 37:
@@ -72,6 +88,10 @@ export class Game {
         parent.appendChild(currentScore);
     }
 
+    /**
+     * creates new food square
+     * @param {integer} size width and heigth
+     */
     _createFood(size) {
         const coordinates = this._generateCoordinates(size);
         // console.log(coordinates);
@@ -79,7 +99,11 @@ export class Game {
         return food;
     }
 
-
+    /**
+     * generates random coordinates for food square
+     * returned coordinates are used to set offsets 
+     * @param {integer} size 
+     */
     _generateCoordinates(size) {
         const board = document.getElementsByClassName("game-board")[0];
         const boardSize = board.clientHeight;
@@ -88,6 +112,16 @@ export class Game {
         const yCoord = Math.floor((Math.random() * num)) * size;
         return [xCoord, yCoord];
     }
+
+
+    /**
+     * cretes new square part of snake
+     * sets new offsets at (xCoord,yCoord) and sets color 
+     * to given color
+     * @param {integer} xCoord 
+     * @param {integer} yCoord 
+     * @param {*} color 
+     */
     _createSquare(xCoord, yCoord, color) {
         let square = document.createElement('div');
         square.classList.add('square');
@@ -97,6 +131,10 @@ export class Game {
         return square;
     }
 
+    /**
+     * moves snake's tail square to the front by calculating 
+     * new offsetTop and offsetLeft 
+     */
     move() {
         this._changeDirection();
         const parent = document.getElementsByClassName("game-board")[0];
@@ -114,7 +152,7 @@ export class Game {
 
     /**
      * if snake's length is 1 or new (dx,dy) direction is not opposite 
-     * of last saved direction change moving direction
+     * of last saved direction, change moving direction
      */
     _changeDirection() {
         const changeXDirextion = (this.lastDirection.dx === this.direction.dx * (-1));
@@ -124,7 +162,18 @@ export class Game {
             this.lastDirection = this.direction;
         }
     }
-
+    /**
+     * checks for collisions and moves snake's last square to 
+     * the front
+     * if there is a collision with wall resets game state
+     * if there is a collision with food eats the food
+     * @param {integer} x coordinate along x axis
+     * @param {integer} y coordinate along y axis
+     * @param {*} tail node
+     * @param {*} parent node
+     * @param {integer} width snake's unit square width
+     * @param {integer} height snake's unit square heigth
+     */
     _makeMove(x, y, tail, parent, width, height) {
         if (this._collideWall(x, y, width, height, parent) === true || this._collideBody(x, y)) {
             this.play = false;
@@ -140,6 +189,14 @@ export class Game {
             this._moveTail(tail, parent, x, y);
         }
     }
+    /**
+     * removes tail of snake, creates new node at (x,y) coordinate 
+     * and appends this new node to parent node
+     * @param {*} tail node 
+     * @param {*} parent node
+     * @param {integer} x new coordinate along x axis
+     * @param {integer} y new coordinate along y axis
+     */
 
     _moveTail(tail, parent, x, y) {
         parent.removeChild(tail);
@@ -147,13 +204,19 @@ export class Game {
         parent.appendChild(newSeg);
         this.snake.push(newSeg);
     }
-
+    /**
+     * takes food square, changes its color and adds it in snake's array
+     */
     _eatFood() {
         this.food.style.backgroundColor = "blue";
         this.snake.unshift(this.food);
     }
 
-
+    /**
+     * checks if there is a collision with snake's squares
+     * @param {integer} x new coordinate alog x axis
+     * @param {integer} y new coordinate along y axis
+     */
     _collideBody(x, y) {
         for (const square of this.snake) {
             if (x === square.offsetLeft && y === square.offsetTop) {
@@ -162,6 +225,16 @@ export class Game {
         }
         return false;
     }
+
+    /**
+     * checks if there is a collision with
+     * parent node's walls
+     * @param {integer} x new coordinate along x axis
+     * @param {integer} y new coordinate along y axis
+     * @param {integer} width width of snake square
+     * @param {integer} height heigth of snake quare
+     * @param {*} parent parent node 
+     */
 
 
     _collideWall(x, y, width, height, parent) {
@@ -173,7 +246,10 @@ export class Game {
         return false;
     }
 
-
+    /**
+     * if current score is greater than current maximum score
+     * saves new maximum score to local storage
+     */
     _updateLocalStorage() {
         let score = localStorage.getItem("score");
         if (score == null) {
@@ -187,7 +263,12 @@ export class Game {
         }
     }
 
-
+    /**
+     * checks if new (x,y) coordinates collide with food square
+     * if there is a collision increases current score and returs true
+     * @param {integer} x  new coordinate along x axis
+     * @param {integer} y  new coordinate along y axis
+     */
     _collideFood(x, y) {
         const foodXCoord = this.food.offsetLeft;
         const foodYCoord = this.food.offsetTop;

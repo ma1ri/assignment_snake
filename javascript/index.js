@@ -10,35 +10,44 @@ document.addEventListener("keydown", (event) => { snake.getDirection(event) });
 //saves setinterval timer
 let myvar;
 
-function buttonActionWrapper() {
-    startButton.removeEventListener("click", buttonActionWrapper);
-    snake.reset();
-    startButtonAction();
-}
 
-function startButtonAction() {
+/**
+ * event listener function for start button
+ */
+function startGame() {
+    startButton.removeEventListener("click", startGame);
+    snake.setPlay = true;
+    play();
+}
+/**
+ * timer for playing 
+ */
+function play() {
     myvar = setInterval(() => {
         if (snake.playing) {
             snake.move();
         } else {
             clearInterval(myvar);
-            startButton.addEventListener("click", buttonActionWrapper, false);
+            startButton.addEventListener("click", startGame, false);
         }
     }, 100);
 }
 
 
-startButton.addEventListener("click", buttonActionWrapper, false);
+
+// add event listeners to buttons
+
+startButton.addEventListener("click", startGame, false);
 
 pauseButton.addEventListener("click", () => {
     clearInterval(myvar);
-    startButton.addEventListener("click", buttonActionWrapper, false);
+    startButton.addEventListener("click", startGame, false);
 });
 
 stopButton.addEventListener("click", () => {
     clearInterval(myvar);
     snake.restart();
-    startButton.addEventListener("click", buttonActionWrapper, false);
+    startButton.addEventListener("click", startGame, false);
 });
 
 
