@@ -10,15 +10,16 @@ export class Game {
 
     restart() {
         this.score = 0;
+        this.lastDirection = { dx: 0, dy: 0 };
         const parent = document.getElementsByClassName("game-board")[0];
         parent.innerText = "";
         const firstSquare = this._createSquare(0, 0, "blue");
         parent.appendChild(firstSquare);
         this.snake = [firstSquare];
-        //display maximum score
-        this._displayMaximumScore();
         //display current score
-        this._displayCurrentScore();
+        this._displayCurrentScore(parent);
+        //display maximum score
+        this._displayMaximumScore(parent);
         const size = firstSquare.offsetHeight;
         this.food = this._createFood(size);
         parent.appendChild(this.food);
@@ -27,17 +28,24 @@ export class Game {
     /**
      * displays maximum score 
      */
-    _displayMaximumScore() {
-        const maxScore = document.getElementById("max-score");
-        maxScore.innerText = `Maximum Score: ${localStorage.getItem("score") ? localStorage.getItem("score") : 0}`
+    _displayMaximumScore(parent) {
+        const maxScore = document.createElement("div");
+        maxScore.id = "max-score";
+        maxScore.innerText = `Maximum Score: ${localStorage.getItem("score") ? localStorage.getItem("score") : 0}`;
+        const currentScore = document.getElementById("current-score");
+        maxScore.style.left = currentScore.offsetWidth + "px";
+        parent.appendChild(maxScore);
     }
 
     /**
      * displays current score
      */
-    _displayCurrentScore() {
-        const currentScore = document.getElementById("score");
+    _displayCurrentScore(parent) {
+
+        const currentScore = document.createElement("div");
+        currentScore.id = "current-score";
         currentScore.innerText = `Score: ${this.score}`;
+        parent.appendChild(currentScore);
     }
 
     _createFood(size) {
@@ -51,7 +59,7 @@ export class Game {
     _generateCoordinates(size) {
         const board = document.getElementsByClassName("game-board")[0];
         const boardSize = board.offsetHeight;
-        const num = (boardSize - size) / size;
+        const num = ((boardSize - size) / size) - 1;
         const xCoord = Math.floor((Math.random() * num)) * size;
         const yCoord = Math.floor((Math.random() * num)) * size;
         return [xCoord, yCoord];
@@ -66,17 +74,35 @@ export class Game {
     }
 
     move(dx, dy) {
+        this._changeDirection(dx, dy);
         const parent = document.getElementsByClassName("game-board")[0];
         const headIndex = this.snake.length - 1;
         const head = this.snake[headIndex];
         const tail = this.snake.shift();
-        let width = head.offsetWidth;
-        let height = head.offsetHeight;
-        let y = head.offsetTop + height * dy;
-        let x = head.offsetLeft + width * dx;
+        const width = head.offsetWidth;
+        const height = head.offsetHeight;
+        const y = head.offsetTop + height * this.lastDirection.dy;
+        const x = head.offsetLeft + width * this.lastDirection.dx;
         this._makeMove(x, y, tail, parent, width, height);
+
     }
 
+
+    /**
+     * if snake's length is 1 or new (dx,dy) direction is not opposite 
+     * of last saved direction change moving direction
+     * @param {integer} dx new direction along x axis
+     * @param {integer} dy new direction along y axis
+     */
+    _changeDirection(dx, dy) {
+        const changeXDirextion = (this.lastDirection.dx === dx * (-1));
+        const changeYDirextion = (this.lastDirection.dy === dy * (-1));
+
+        if (!(changeXDirextion && changeYDirextion) || this.snake.length === 1) {
+            this.lastDirection.dx = dx;
+            this.lastDirection.dy = dy;
+        }
+    }
 
     _makeMove(x, y, tail, parent, width, height) {
         if (this._collideWall(x, y, width, height, parent) === true || this._collideBody(x, y)) {
@@ -146,7 +172,7 @@ export class Game {
         const foodYCoord = this.food.offsetTop;
         if (foodXCoord === x && foodYCoord === y) {
             this.score += 10;
-            const scoreText = document.getElementById("score");
+            const scoreText = document.getElementById("current-score");
             scoreText.innerText = `Score: ${this.score}`
             return true;
         }

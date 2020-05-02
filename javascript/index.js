@@ -5,61 +5,59 @@ const left = 37;
 const up = 38;
 const right = 39;
 const down = 40;
-let result = { dx: 1, dy: 0 };
+let direction = { dx: 1, dy: 0 };
 
 function getDirection(event) {
     switch (event.keyCode) {
         case left:
-            result.dx = -1;
-            result.dy = 0;
+            direction.dx = -1;
+            direction.dy = 0;
             break;
         case up:
-            result.dx = 0;
-            result.dy = -1;
+            direction.dx = 0;
+            direction.dy = -1;
             break;
         case right:
-            result.dx = 1;
-            result.dy = 0;
+            direction.dx = 1;
+            direction.dy = 0;
             break;
         case down:
-            result.dx = 0;
-            result.dy = 1;
+            direction.dx = 0;
+            direction.dy = 1;
             break;
 
     }
 }
 
 
-
 document.addEventListener("keydown", (event) => { getDirection(event) });
-// *************************************************
 
 
-const sn = new Game();
-const startButton = document.getElementsByClassName("start-button")[0];
-const pauseButton = document.getElementsByClassName("pause-button")[0];
-const stopButton = document.getElementsByClassName("stop-button")[0];
+const snake = new Game();
+const startButton = document.getElementById("start-button");
+const pauseButton = document.getElementById("pause-button");
+const stopButton = document.getElementById("stop-button");
 //saves setinterval timer
 let myvar;
 
 function buttonActionWrapper() {
     console.log("clicked");
     startButton.removeEventListener("click", buttonActionWrapper);
-    sn.reset();
+    snake.reset();
     startButtonAction();
 }
 
 function startButtonAction() {
     myvar = setInterval(() => {
-        if (sn.play) {
-            sn.move(result.dx, result.dy)
+        if (snake.play) {
+            snake.move(direction.dx, direction.dy)
         } else {
-            result.dx = 1;
-            result.dy = 0;
+            direction.dx = 1;
+            direction.dy = 0;
             clearInterval(myvar);
             startButton.addEventListener("click", buttonActionWrapper, false);
         }
-    }, 1000);
+    }, 100);
 }
 
 
@@ -72,7 +70,7 @@ pauseButton.addEventListener("click", () => {
 
 stopButton.addEventListener("click", () => {
     clearInterval(myvar);
-    sn.restart();
+    snake.restart();
     startButton.addEventListener("click", buttonActionWrapper, false);
 });
 
