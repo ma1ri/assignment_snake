@@ -1,31 +1,44 @@
 export class Game {
     constructor() {
         this.reset();
-        this._restart();
+        this.restart();
     }
 
-
-
-
-    reset(){
+    reset() {
         this.play = true;
     }
 
-    _restart() {
+    restart() {
         this.score = 0;
-        this.snake = [];
         const parent = document.getElementsByClassName("game-board")[0];
-        let firstSquare = this._createSquare(0, 0, "blue");
+        parent.innerText = "";
+        const firstSquare = this._createSquare(0, 0, "blue");
         parent.appendChild(firstSquare);
         this.snake = [firstSquare];
-
-        let maxScore = document.getElementById("max-score");
-        maxScore.innerText = `Maximum Score: ${localStorage.getItem("score")}`
+        //display maximum score
+        this._displayMaximumScore();
+        //display current score
+        this._displayCurrentScore();
         const size = firstSquare.offsetHeight;
         this.food = this._createFood(size);
         parent.appendChild(this.food);
     }
 
+    /**
+     * displays maximum score 
+     */
+    _displayMaximumScore() {
+        const maxScore = document.getElementById("max-score");
+        maxScore.innerText = `Maximum Score: ${localStorage.getItem("score") ? localStorage.getItem("score") : 0}`
+    }
+
+    /**
+     * displays current score
+     */
+    _displayCurrentScore() {
+        const currentScore = document.getElementById("score");
+        currentScore.innerText = `Score: ${this.score}`;
+    }
 
     _createFood(size) {
         const coordinates = this._generateCoordinates(size);
@@ -37,7 +50,7 @@ export class Game {
 
     _generateCoordinates(size) {
         const board = document.getElementsByClassName("game-board")[0];
-        const boardSize = board.offsetHeight - 4;
+        const boardSize = board.offsetHeight;
         const num = (boardSize - size) / size;
         const xCoord = Math.floor((Math.random() * num)) * size;
         const yCoord = Math.floor((Math.random() * num)) * size;
@@ -61,33 +74,46 @@ export class Game {
         let height = head.offsetHeight;
         let y = head.offsetTop + height * dy;
         let x = head.offsetLeft + width * dx;
-        this._makeMove(x, y, tail, parent, width, height, dx, dy);
-        // console.log(x, y);
-
-
-
+        this._makeMove(x, y, tail, parent, width, height);
     }
 
 
-    _makeMove(x, y, square, parent, width, height, dx, dy) {
-        if (this._collideWall(x, y, width, height, parent) === true) {
+    _makeMove(x, y, tail, parent, width, height) {
+        if (this._collideWall(x, y, width, height, parent) === true || this._collideBody(x, y)) {
             this.play = false;
-            parent.innerText = "";
-            this._restart();
-            return false;
-        } else if (this._collideFood(x, y) === true) {
-            this.food.style.backgroundColor = "blue";
-            this.snake.unshift(this.food);
-            this.food = this._createFood(width);
-            parent.appendChild(this.food);
-
+            this._updateLocalStorage();
+            this.restart();
+        } else {
+            if (this._collideFood(x, y) === true) {
+                this._eatFood();
+                //add new food
+                this.food = this._createFood(width);
+                parent.appendChild(this.food);
+            }
+            this._moveTail(tail, parent, x, y);
         }
-        parent.removeChild(square);
+    }
+
+    _moveTail(tail, parent, x, y) {
+        parent.removeChild(tail);
         const newSeg = this._createSquare(x, y, "blue");
         parent.appendChild(newSeg);
         this.snake.push(newSeg);
-        return true;
+    }
 
+    _eatFood() {
+        this.food.style.backgroundColor = "blue";
+        this.snake.unshift(this.food);
+    }
+
+
+    _collideBody(x, y) {
+        for (const square of this.snake) {
+            if (x === square.offsetLeft && y === square.offsetTop) {
+                return true;
+            }
+        }
+        return false;
     }
 
 
@@ -95,22 +121,25 @@ export class Game {
         const rightWall = parent.offsetWidth;
         const bottomWall = parent.offsetHeight;
         if (x < 0 || y < 0 || x + width > rightWall || y + height > bottomWall) {
-            let score = localStorage.getItem("score");
-            if(score == null){
-                localStorage.setItem("score", 0);
-            }else{
-                let score = JSON.parse(localStorage.getItem("score"));
-                if(parseInt(score) < this.score){
-                    localStorage.removeItem("score");
-                    localStorage.setItem("score", this.score);
-                }  
-            }
             return true;
         }
-
         return false;
-
     }
+
+
+    _updateLocalStorage() {
+        let score = localStorage.getItem("score");
+        if (score == null) {
+            localStorage.setItem("score", this.score);
+        } else {
+            let score = JSON.parse(localStorage.getItem("score"));
+            if (parseInt(score) < this.score) {
+                localStorage.removeItem("score");
+                localStorage.setItem("score", this.score);
+            }
+        }
+    }
+
 
     _collideFood(x, y) {
         const foodXCoord = this.food.offsetLeft;

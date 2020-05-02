@@ -34,32 +34,46 @@ function getDirection(event) {
 document.addEventListener("keydown", (event) => { getDirection(event) });
 // *************************************************
 
-const startButton = document.getElementsByClassName("start-button")[0];
+
 const sn = new Game();
-
+const startButton = document.getElementsByClassName("start-button")[0];
 const pauseButton = document.getElementsByClassName("pause-button")[0];
-
+const stopButton = document.getElementsByClassName("stop-button")[0];
 //saves setinterval timer
 let myvar;
 
-function buttonActionWrapper(){
+function buttonActionWrapper() {
+    console.log("clicked");
+    startButton.removeEventListener("click", buttonActionWrapper);
     sn.reset();
     startButtonAction();
 }
 
-function startButtonAction(){
-    myvar = setInterval( () => {
-        if(sn.play){
-            sn.move(result.dx, result.dy) 
-        }else{
+function startButtonAction() {
+    myvar = setInterval(() => {
+        if (sn.play) {
+            sn.move(result.dx, result.dy)
+        } else {
             result.dx = 1;
             result.dy = 0;
             clearInterval(myvar);
-        }   
+            startButton.addEventListener("click", buttonActionWrapper, false);
+        }
     }, 1000);
 }
-startButton.addEventListener("click",buttonActionWrapper,false );
 
-pauseButton.addEventListener("click", () => clearInterval(myvar));
+
+startButton.addEventListener("click", buttonActionWrapper, false);
+
+pauseButton.addEventListener("click", () => {
+    clearInterval(myvar);
+    startButton.addEventListener("click", buttonActionWrapper, false);
+});
+
+stopButton.addEventListener("click", () => {
+    clearInterval(myvar);
+    sn.restart();
+    startButton.addEventListener("click", buttonActionWrapper, false);
+});
 
 
