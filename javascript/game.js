@@ -8,9 +8,15 @@ export class Game {
         this.play = true;
     }
 
+    get playing() {
+        return this.play;
+    }
+
+
     restart() {
         this.score = 0;
-        this.lastDirection = { dx: 0, dy: 0 };
+        this.lastDirection = { dx: 1, dy: 0 };
+        this.direction = { dx: 1, dy: 0 };
         const parent = document.getElementsByClassName("game-board")[0];
         parent.innerText = "";
         const firstSquare = this._createSquare(0, 0, "blue");
@@ -25,6 +31,24 @@ export class Game {
         parent.appendChild(this.food);
     }
 
+
+
+    getDirection(event) {
+        switch (event.keyCode) {
+            case 37:
+                this.direction = { dx: -1, dy: 0 };
+                break;
+            case 38:
+                this.direction = { dx: 0, dy: -1 };
+                break;
+            case 39:
+                this.direction = { dx: 1, dy: 0 };
+                break;
+            case 40:
+                this.direction = { dx: 0, dy: 1 };
+                break;
+        }
+    }
     /**
      * displays maximum score 
      */
@@ -58,7 +82,7 @@ export class Game {
 
     _generateCoordinates(size) {
         const board = document.getElementsByClassName("game-board")[0];
-        const boardSize = board.offsetHeight;
+        const boardSize = board.clientHeight;
         const num = ((boardSize - size) / size) - 1;
         const xCoord = Math.floor((Math.random() * num)) * size;
         const yCoord = Math.floor((Math.random() * num)) * size;
@@ -73,8 +97,8 @@ export class Game {
         return square;
     }
 
-    move(dx, dy) {
-        this._changeDirection(dx, dy);
+    move() {
+        this._changeDirection();
         const parent = document.getElementsByClassName("game-board")[0];
         const headIndex = this.snake.length - 1;
         const head = this.snake[headIndex];
@@ -91,16 +115,13 @@ export class Game {
     /**
      * if snake's length is 1 or new (dx,dy) direction is not opposite 
      * of last saved direction change moving direction
-     * @param {integer} dx new direction along x axis
-     * @param {integer} dy new direction along y axis
      */
-    _changeDirection(dx, dy) {
-        const changeXDirextion = (this.lastDirection.dx === dx * (-1));
-        const changeYDirextion = (this.lastDirection.dy === dy * (-1));
+    _changeDirection() {
+        const changeXDirextion = (this.lastDirection.dx === this.direction.dx * (-1));
+        const changeYDirextion = (this.lastDirection.dy === this.direction.dy * (-1));
 
         if (!(changeXDirextion && changeYDirextion) || this.snake.length === 1) {
-            this.lastDirection.dx = dx;
-            this.lastDirection.dy = dy;
+            this.lastDirection = this.direction;
         }
     }
 
@@ -144,8 +165,8 @@ export class Game {
 
 
     _collideWall(x, y, width, height, parent) {
-        const rightWall = parent.offsetWidth;
-        const bottomWall = parent.offsetHeight;
+        const rightWall = parent.clientWidth;
+        const bottomWall = parent.clientHeight;
         if (x < 0 || y < 0 || x + width > rightWall || y + height > bottomWall) {
             return true;
         }
